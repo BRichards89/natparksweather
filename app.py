@@ -17,7 +17,8 @@ def GetAccessToken():
             confFile.write('{accessToken} : {}')
     return ""
 
-def MakeRequest(apiArg,apiDict, options):
+
+def MakeRequest(apiArg, apiDict, options):
     if set(apiDict[apiArg][1]).issubset(list(options.keys())):
         appendString = apiArg
         for key, value in options.items():
@@ -27,25 +28,39 @@ def MakeRequest(apiArg,apiDict, options):
                 print('{} is not a valid option!'.format(key))
     else:
         appendString = 'Missing required arguments (' + \
-                       ', '.join([missingKey for missingKey in apiDict[apiArg][1] if missingKey not in list(options.keys())]) \
+                       ', '.join(
+                           [missingKey for missingKey in apiDict[apiArg][1] if missingKey not in list(options.keys())]) \
                        + ') for \"' + apiArg + '\" API call.'
     return appendString
 
+
 def BuildAPIDictionary():
     # Build our dictionary for API calls.
+    # API lives here: https://www.ncdc.noaa.gov/cdo-web/webservices/v2
     # Key = api call type
     # Value = [valid keys],[required keys]
     apiDict = dict()
+    apiDict['datasets'] = [['datatypeid', 'locationid', 'stationid', 'startdate', 'enddate',
+                            'sortfield', 'sortorder', 'limit', 'offset'],
+                           []]
+    apiDict['datacategories'] = [['datasetid', 'locationid', 'stationid', 'startdate', 'enddate',
+                                  'sortfield', 'sortorder', 'limit', 'offset'],
+                                 []]
+    apiDict['datatypes'] = [['datasetid', 'locationid', 'stationid', 'datacategoryid', 'startdate',
+                             'enddate', 'sortfield', 'sortorder', 'limit', 'offset'],
+                            []]
+    apiDict['locationcategories'] = [['datasetid', 'startdate', 'enddate', 'sortfield', 'sortorder', 'limit', 'offset'],
+                                     []]
+    apiDict['locations'] = [['datasetid', 'locationcategoryid', 'datacategoryid', 'startdate', 'enddate',
+                             'sortfield', 'sortorder', 'limit', 'offset'],
+                            []]
+    apiDict['stations'] = [['datasetid', 'locationid', 'datacategoryid', 'datatypeid', 'extent',
+                            'startdate', 'enddate', 'sortfield', 'sortorder', 'limit', 'offset'],
+                           []]
     apiDict['data'] = [['datasetid', 'datatypeid', 'locationid', 'stationid', 'startdate',
                         'enddate', 'units', 'sortfield', 'sortorder', 'limit', 'offset',
                         'includemetadata'],
                        ['datasetid', 'startdate', 'enddate']]
-    apiDict['datacategories'] = [['datasetid', 'locationid', 'stationid', 'startdate', 'enddate',
-                                  'sortfield', 'sortorder', 'limit', 'offset'],
-                                 []]
-    apiDict['datasets'] = [['datatypeid', 'locationid', 'stationid', 'startdate', 'enddate',
-                            'sortfield', 'sortorder', 'limit', 'offset'],
-                           []]
 
     return apiDict
 
@@ -60,7 +75,7 @@ def main(accessToken):
     options = dict()
     options['limit'] = '1000'
     # Make our request
-    strRequest = MakeRequest('data',apiDict,options)
+    strRequest = MakeRequest('data', apiDict, options)
     # Check if we have a valid (no missing arguments) request
     if 'Missing required arguments' not in strRequest:
         # If we have a valid request, send it
