@@ -1,4 +1,20 @@
 import requests
+import os.path
+
+def GetAccessToken():
+    if os.path.isfile('conf.ini'):
+        print('Reading configuration settings..')
+        with open('conf.ini','r') as confFile:
+            for line in confFile.readlines():
+                confSetting = line.replace(' ', '').rstrip('\n\r').replace('{','').replace('}','').split(":")
+                if confSetting[0] == 'accessToken':
+                    print(confSetting)
+                    return confSetting[1]
+    else:
+        print('No configuration found! Creating conf.ini. Please insert API token')
+        with open('conf.ini','w') as confFile:
+            confFile.write('{accessToken} : {}')
+    return ""
 
 def MakeOptions(appendString, validKeys, requiredKeys, options):
     for key,value in options.items():
@@ -42,4 +58,6 @@ def main(accessToken):
     jResponse = response.json()
     for i in range(len(jResponse['results'])): print(jResponse['results'][i]['name'])
 
+
+accessToken = GetAccessToken()
 main(accessToken)
