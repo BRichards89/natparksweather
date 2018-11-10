@@ -8,7 +8,6 @@ def GetAccessToken():
             for line in confFile.readlines():
                 confSetting = line.replace(' ', '').rstrip('\n\r').replace('{', '').replace('}', '').split(":")
                 if confSetting[0] == 'accessToken':
-                    print(confSetting)
                     return confSetting[1]
     else:
         print('No configuration found! Creating conf.ini.')
@@ -17,11 +16,14 @@ def GetAccessToken():
     return ""
 
 def MakeOptions(appendString, validKeys, requiredKeys, options):
-    for key,value in options.items():
-        if key in validKeys:
-            appendString = appendString + "?{}={}".format(key,value)
-        else:
-            print('{} is not a valid option!'.format(key))
+    if set(requiredKeys).issubset(list(options.keys())):
+        for key,value in options.items():
+            if key in validKeys:
+                appendString = appendString + "?{}={}".format(key,value)
+            else:
+                print('{} is not a valid option!'.format(key))
+    else:
+        appendString = 'Missing required args'
     return appendString
 
 def RequestData(**kwargs):
@@ -50,12 +52,14 @@ def main(accessToken):
     #response = requests.get(baseURL + "locationcategories?limit=1000", headers={'token': accessToken}).json()
 #    response = requests.get(baseURL + "datacategories?limit=1000", headers={'token': accessToken}).json()
 #    for i in range(len(response['results'])): print(response['results'][i]['name'])
-    strRequest = baseURL + RequestData(limit="1000",testKey='999')
-    print(strRequest)
-    response = requests.get(strRequest, headers={'token': accessToken})
-    print(response.text)
-    jResponse = response.json()
-    for i in range(len(jResponse['results'])): print(jResponse['results'][i]['name'])
+    strRequest = RequestData(limit="1000",testKey='999')
+    if strRequest != 'Missing required args':
+        response = requests.get(baseURL + strRequest, headers={'token': accessToken})
+        print(response.text)
+        jResponse = response.json()
+        #for i in range(len(jResponse['results'])): print(jResponse['results'][i]['name'])
+    else:
+        print(strRequest)
 
 
 accessToken = GetAccessToken()
