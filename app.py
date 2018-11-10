@@ -17,7 +17,7 @@ def GetAccessToken():
             confFile.write('{accessToken} : {}')
     return ""
 
-def MakeOptions(apiArg,apiDict, options):
+def MakeRequest(apiArg,apiDict, options):
     if set(apiDict[apiArg][1]).issubset(list(options.keys())):
         appendString = apiArg
         for key, value in options.items():
@@ -53,22 +53,17 @@ def BuildAPIDictionary():
 def main(accessToken):
     # set where the API lives. Thanks NOAA!
     baseURL = "https://www.ncdc.noaa.gov/cdo-web/api/v2/"
+    # Build the API dictionary of valid / required keys for each lookup type
     apiDict = BuildAPIDictionary()
-    # Example 
-    # response = requests.get(baseURL + "stations",headers={'token': accessToken})
-    # print(response.text)
-    # response = requests.get(baseURL + "stations?locationid=FIPS:51", headers={'token': accessToken})
-    # response = requests.get(baseURL + "stations?locationid=FIPS:51", headers={'token': accessToken})
-    # response = requests.get(baseURL + "locationcategories?limit=1000", headers={'token': accessToken}).json()
-    #    response = requests.get(baseURL + "datacategories?limit=1000", headers={'token': accessToken}).json()
-    #    for i in range(len(response['results'])): print(response['results'][i]['name'])
-    # strRequest = RequestData(limit="1000",testKey='999')
-    # strRequest = RequestDataCategories(limit='1000')
-    # strRequest = RequestDatasets(limit='1000')
+    # What options do we want in our query? This will get moved out of main method / main method will be removed once
+    # this is ported to an actual app thing
     options = dict()
     options['limit'] = '1000'
-    strRequest = MakeOptions('data',apiDict,options)
+    # Make our request
+    strRequest = MakeRequest('data',apiDict,options)
+    # Check if we have a valid (no missing arguments) request
     if 'Missing required arguments' not in strRequest:
+        # If we have a valid request, send it
         response = requests.get(baseURL + strRequest, headers={'token': accessToken})
         print(response.text)
         jResponse = response.json()
@@ -76,6 +71,7 @@ def main(accessToken):
             print(jResponse['results'][i]['name'] + ' : ', end='')
             print(jResponse['results'][i]['id'])
     else:
+        # We don't have a valid request. What are we missing?
         print(strRequest)
 
 
