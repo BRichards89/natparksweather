@@ -1,6 +1,7 @@
 import requests
 import os.path
 
+
 def GetAccessToken():
     print('Reading configuration settings..', end='')
     if os.path.isfile('conf.ini'):
@@ -16,51 +17,57 @@ def GetAccessToken():
             confFile.write('{accessToken} : {}')
     return ""
 
-def MakeOptions(appendString, validKeys, requiredKeys, options):
-    if set(requiredKeys).issubset(list(options.keys())):
-        for key,value in options.items():
-            if key in validKeys:
-                appendString = appendString + "?{}={}".format(key,value)
+def MakeOptions(apiArg,apiDict, options):
+    if set(apiDict[apiArg][1]).issubset(list(options.keys())):
+        appendString = apiArg
+        for key, value in options.items():
+            if key in apiDict[apiArg][0]:
+                appendString = appendString + "?{}={}".format(key, value)
             else:
                 print('{} is not a valid option!'.format(key))
     else:
         appendString = 'Missing required arguments (' + \
-                       ', '.join([missingKey for missingKey in requiredKeys if missingKey not in list(options.keys())]) \
-                       + ') for \"' + appendString + '\" API call.'
+                       ', '.join([missingKey for missingKey in apiDict[apiArg][1] if missingKey not in list(options.keys())]) \
+                       + ') for \"' + apiArg + '\" API call.'
     return appendString
 
-def RequestData(**kwargs):
-    validKeys = ['datasetid', 'datatypeid', 'locationid', 'stationid', 'startdate',
-                 'enddate', 'units', 'sortfield', 'sortorder', 'limit', 'offset',
-                 'includemetadata']
-    requiredKeys = ['datasetid', 'startdate', 'enddate']
-    return MakeOptions('data', validKeys, requiredKeys,  kwargs)
+def BuildAPIDictionary():
+    # Build our dictionary for API calls.
+    # Key = api call type
+    # Value = [valid keys],[required keys]
+    apiDict = dict()
+    apiDict['data'] = [['datasetid', 'datatypeid', 'locationid', 'stationid', 'startdate',
+                        'enddate', 'units', 'sortfield', 'sortorder', 'limit', 'offset',
+                        'includemetadata'],
+                       ['datasetid', 'startdate', 'enddate']]
+    apiDict['datacategories'] = [['datasetid', 'locationid', 'stationid', 'startdate', 'enddate',
+                                  'sortfield', 'sortorder', 'limit', 'offset'],
+                                 []]
+    apiDict['datasets'] = [['datatypeid', 'locationid', 'stationid', 'startdate', 'enddate',
+                            'sortfield', 'sortorder', 'limit', 'offset'],
+                           []]
 
-def RequestDataCategories(**kwargs):
-    validKeys = ['datasetid', 'locationid', 'stationid', 'startdate', 'enddate',
-                 'sortfield', 'sortorder', 'limit', 'offset']
-    requiredKeys = []
-    return MakeOptions('datacategories', validKeys, requiredKeys, kwargs)
+    return apiDict
 
-def RequestDatasets(**kwargs):
-    validKeys = ['datatypeid', 'locationid', 'stationid', 'startdate', 'enddate',
-                 'sortfield', 'sortorder', 'limit', 'offset']
-    requiredKeys = []
-    return MakeOptions('datasets', validKeys, requiredKeys, kwargs)
 
 def main(accessToken):
+    # set where the API lives. Thanks NOAA!
     baseURL = "https://www.ncdc.noaa.gov/cdo-web/api/v2/"
+    apiDict = BuildAPIDictionary()
     # Example 
     # response = requests.get(baseURL + "stations",headers={'token': accessToken})
     # print(response.text)
     # response = requests.get(baseURL + "stations?locationid=FIPS:51", headers={'token': accessToken})
     # response = requests.get(baseURL + "stations?locationid=FIPS:51", headers={'token': accessToken})
     # response = requests.get(baseURL + "locationcategories?limit=1000", headers={'token': accessToken}).json()
-#    response = requests.get(baseURL + "datacategories?limit=1000", headers={'token': accessToken}).json()
-#    for i in range(len(response['results'])): print(response['results'][i]['name'])
-    #strRequest = RequestData(limit="1000",testKey='999')
+    #    response = requests.get(baseURL + "datacategories?limit=1000", headers={'token': accessToken}).json()
+    #    for i in range(len(response['results'])): print(response['results'][i]['name'])
+    # strRequest = RequestData(limit="1000",testKey='999')
     # strRequest = RequestDataCategories(limit='1000')
-    strRequest = RequestDatasets(limit='1000')
+    # strRequest = RequestDatasets(limit='1000')
+    options = dict()
+    options['limit'] = '1000'
+    strRequest = MakeOptions('data',apiDict,options)
     if 'Missing required arguments' not in strRequest:
         response = requests.get(baseURL + strRequest, headers={'token': accessToken})
         print(response.text)
