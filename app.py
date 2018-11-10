@@ -4,15 +4,15 @@ import os.path
 def GetAccessToken():
     if os.path.isfile('conf.ini'):
         print('Reading configuration settings..')
-        with open('conf.ini','r') as confFile:
+        with open('conf.ini', 'r') as confFile:
             for line in confFile.readlines():
-                confSetting = line.replace(' ', '').rstrip('\n\r').replace('{','').replace('}','').split(":")
+                confSetting = line.replace(' ', '').rstrip('\n\r').replace('{', '').replace('}', '').split(":")
                 if confSetting[0] == 'accessToken':
                     print(confSetting)
                     return confSetting[1]
     else:
-        print('No configuration found! Creating conf.ini. Please insert API token')
-        with open('conf.ini','w') as confFile:
+        print('No configuration found! Creating conf.ini.')
+        with open('conf.ini', 'w') as confFile:
             confFile.write('{accessToken} : {}')
     return ""
 
@@ -40,7 +40,6 @@ def RequestDataCategories(**kwargs):
             print('{} is not a valid option!'.format(key)) 
     return appendString
 
-
 def main(accessToken):
     baseURL = "https://www.ncdc.noaa.gov/cdo-web/api/v2/"
     # Example 
@@ -60,4 +59,7 @@ def main(accessToken):
 
 
 accessToken = GetAccessToken()
-main(accessToken)
+if accessToken == '':
+    print("Please insert API token into conf.ini and try again!")
+else:
+    main(accessToken)
