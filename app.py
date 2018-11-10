@@ -21,9 +21,11 @@ def GetAccessToken():
 def MakeRequest(apiArg, apiDict, options):
     if set(apiDict[apiArg][1]).issubset(list(options.keys())):
         appendString = apiArg
+        argChar = '?'
         for key, value in options.items():
             if key in apiDict[apiArg][0]:
-                appendString = appendString + "?{}={}".format(key, value)
+                appendString = appendString + argChar + "{}={}".format(key, value)
+                argChar = "&"
             else:
                 print('{} is not a valid option!'.format(key))
     else:
@@ -73,9 +75,13 @@ def main(accessToken):
     # What options do we want in our query? This will get moved out of main method / main method will be removed once
     # this is ported to an actual app thing
     options = dict()
-    options['limit'] = '1000'
+    options['locationcategoryid'] = 'ZIP'
+    options['sortfield'] = 'name'
+    options['limit'] = '10'
+
     # Make our request
-    strRequest = MakeRequest('data', apiDict, options)
+    strRequest = MakeRequest('locations', apiDict, options)
+    print(baseURL + strRequest)
     # Check if we have a valid (no missing arguments) request
     if 'Missing required arguments' not in strRequest:
         # If we have a valid request, send it
